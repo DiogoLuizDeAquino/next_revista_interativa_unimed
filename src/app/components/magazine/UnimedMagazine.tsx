@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useCallback } from 'react';
-import useEmblaCarousel from 'embla-carousel-react';
-import Image from 'next/image';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
+import OriginalHTMLFlipBook from 'react-pageflip';
 import { Button } from "@/components/ui/button";
 
-// Dados da revista (ajuste conforme necessário)
+const HTMLFlipBook = OriginalHTMLFlipBook as any;
+
 const magazineData = [
   {
     type: 'cover',
@@ -26,65 +26,89 @@ const magazineData = [
 ];
 
 export default function UnimedMagazine() {
-  const [emblaRef, emblaApi] = useEmblaCarousel();
+  const flipBookRef = useRef<any>(null);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  const [currentPage, setCurrentPage] = useState(0);
 
-  const handleNext = useCallback(() => {
-    if (emblaApi) emblaApi.scrollNext();
-  }, [emblaApi]);
+  const containerRef = useCallback((node: HTMLElement | null) => {
+    if (node !== null) {
+      const width = node.getBoundingClientRect().width;
+      const height = width / (3 / 4);
+      setSize({ width, height });
+    }
+  }, []);
+
+  const onFlip = useCallback((e: any) => {
+    setCurrentPage(e.data);
+  }, []);
+
+  const turnNextPage = () => {
+    flipBookRef.current?.pageFlip()?.flipNext();
+  };
+
+  const turnPrevPage = () => {
+    flipBookRef.current?.pageFlip()?.flipPrev();
+  };
+
+  // useMemo para criar a lista de páginas apenas uma vez.
+  const pages = useMemo(() => {
+    return [
+      // Página de Capa
+      <div key="cover" className="w-full h-full bg-[#00995D] flex flex-col items-center justify-center relative p-8 overflow-hidden">
+        <div className="absolute bottom-0 right-0 w-[150%] h-1/3 bg-white origin-bottom-right -skew-y-[35deg] z-0" />
+        <div className="relative z-10 w-4/5">
+          <img
+            src={magazineData[0].photo!}
+            alt={magazineData[0].name!}
+            className="w-full h-auto object-contain rounded-xl border-4 border-white shadow-2xl"
+          />
+        </div>
+        <div className="absolute bottom-6 right-6 w-auto max-w-[280px] h-auto flex flex-row bg-white rounded-lg shadow-2xl overflow-hidden z-20">
+          <div className="p-3 flex flex-col justify-center flex-1">
+            <h2 className="font-bold text-sm text-black whitespace-nowrap">{magazineData[0].management}</h2>
+            <p className="text-xs text-gray-600 whitespace-nowrap">{magazineData[0].name}</p>
+          </div>
+        </div>
+      </div>,
+      
+      // Mapeia o resto das páginas
+      ...magazineData.slice(1).map((page, index) => (
+        <div key={index} className="w-full h-full bg-white flex flex-col items-center justify-center p-8 shadow-inner">
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">{page.title}</h1>
+          <p className="text-gray-600 text-center">{page.biography}</p>
+        </div>
+      )),
+
+      // Contra-capa
+      <div key="back-cover" className="w-full h-full bg-gray-200 flex items-center justify-center">
+        <p className="text-gray-500">Fim</p>
+      </div>
+    ];
+  }, []); // O array vazio [] garante que isso só rode uma vez
 
   return (
-    <div className="w-full h-full flex items-center justify-center bg-gray-200 p-4">
-      <div className="overflow-hidden w-full h-full max-w-none" ref={emblaRef}>
-        <div className="flex">
-          {magazineData.map((page, index) => (
-            <div key={index} className="relative flex-[0_0_100%] aspect-[3/4] overflow-hidden">
-              
-              {/* Renderiza a Capa com o novo Design */}
-              {page.type === 'cover' && (
-                <div className="w-full h-full bg-[#00995D] flex flex-col items-center justify-center relative p-8">
-                  
-                  {/* Elemento branco diagonal no fundo */}
-                  <div className="absolute bottom-0 right-0 w-[150%] h-1/3 bg-white origin-bottom-right -skew-y-[35deg] z-0" />
-                  
-                  {/* AJUSTE: Imagem com borda, cantos arredondados e sombra */}
-                  <div className="relative z-10 w-4/5">
-                    <Image
-                      src={page.photo!}
-                      alt={page.name!}
-                      width={400}
-                      height={500}
-                      className="w-full h-auto object-contain rounded-xl border-2 border-white shadow-2xl"
-                    />
-                  </div>
-                  
-                  <p className="mt-2 text-white font-bold text-xs z-10">teste imagem</p>
-
-                  {/* AJUSTE: Bloco de texto e botão no canto inferior direito */}
-                  <div className="absolute bottom-6 right-6 w-auto max-w-[280px] h-auto flex flex-row bg-white rounded-lg shadow-2xl overflow-hidden z-20">
-                    <div className="p-3 flex flex-col justify-center flex-1">
-                      <h2 className="font-bold text-sm text-black whitespace-nowrap">{page.management}</h2>
-                      <p className="text-xs text-gray-600 whitespace-nowrap">{page.name}</p>
-                    </div>
-                    <button onClick={handleNext} className="bg-[#00995D] hover:bg-[#007a4a] transition-colors flex items-center justify-center px-4">
-                      <p className="text-white font-bold text-xs">Próximo</p>
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Renderiza as Páginas de Conteúdo (design diferente) */}
-              {page.type === 'page' && (
-                <div className="w-full h-full bg-white flex flex-col items-center justify-center p-8 shadow-lg">
-                  <h1 className="text-xl md:text-2xl font-bold ...">Título</h1>
-                  <p className="text-gray-600 text-center">{page.biography}</p>
-                  <Button onClick={handleNext} className="mt-8 bg-[#00995D] hover:bg-[#007a4a]">
-                    Próximo
-                  </Button>
-                </div>
-              )}
+    <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl">
+      <div ref={containerRef} className="w-full">
+        {size.width > 0 && (
+          <>
+            <HTMLFlipBook
+              width={size.width}
+              height={size.height}
+              ref={flipBookRef}
+              onFlip={onFlip}
+              className="shadow-2xl mx-auto"
+              showCover={true}
+            >
+              {pages}
+            </HTMLFlipBook>
+            
+            <div className="flex items-center justify-center gap-4 mt-8">
+              <Button onClick={turnPrevPage} variant="outline" disabled={currentPage === 0}>Anterior</Button>
+              <span className="text-gray-600 font-medium">Página {currentPage + 1} de {pages.length}</span>
+              <Button onClick={turnNextPage} variant="outline" disabled={currentPage >= pages.length - 1}>Próximo</Button>
             </div>
-          ))}
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
