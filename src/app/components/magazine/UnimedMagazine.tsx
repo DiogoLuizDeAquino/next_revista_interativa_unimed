@@ -4,6 +4,7 @@ import React, { useState, useRef, useCallback, useMemo } from 'react';
 import OriginalHTMLFlipBook from 'react-pageflip';
 import { Button } from "@/components/ui/button";
 
+
 const HTMLFlipBook = OriginalHTMLFlipBook as any;
 
 const magazineData = [
@@ -24,6 +25,7 @@ const magazineData = [
     biography: 'Texto completo da biografia do Diretor 2...',
   },
 ];
+
 
 export default function UnimedMagazine() {
   const flipBookRef = useRef<any>(null);
@@ -54,19 +56,19 @@ export default function UnimedMagazine() {
   const pages = useMemo(() => {
     return [
       // Página de Capa
-      <div key="cover" className="w-full h-full bg-[#00995D] flex flex-col items-center justify-center relative p-8 overflow-hidden">
+        <div key="cover" className="w-full h-full bg-[#00995D] grid place-items-center relative p-8 overflow-hidden">
         <div className="absolute bottom-0 right-0 w-[150%] h-1/3 bg-white origin-bottom-right -skew-y-[35deg] z-0" />
         <div className="relative z-10 w-4/5">
           <img
             src={magazineData[0].photo!}
             alt={magazineData[0].name!}
-            className="w-full h-auto object-contain rounded-xl border-4 border-white shadow-2xl"
+            className="w-full h-auto object-contain rounded-xl border-2 border-gray-300 shadow-black/35 shadow-2xl"
           />
         </div>
-        <div className="absolute bottom-6 right-6 w-auto max-w-[280px] h-auto flex flex-row bg-white rounded-lg shadow-2xl overflow-hidden z-20">
-          <div className="p-3 flex flex-col justify-center flex-1">
-            <h2 className="font-bold text-sm text-black whitespace-nowrap">{magazineData[0].management}</h2>
-            <p className="text-xs text-gray-600 whitespace-nowrap">{magazineData[0].name}</p>
+        <div className="absolute bottom-6 right-6 w-auto max-w-[280px] h-auto flex flex-row bg-white rounded-lg shadow-2xl overflow-hidden z-20 border-2 border-gray-300">
+          <div className="p-5 flex flex-col justify-center flex-1">
+            <h2 className="font-bold text-lg text-black whitespace-nowrap">{magazineData[0].management}</h2>
+            <p className="text-base text-gray-600 whitespace-nowrap">{magazineData[0].name}</p>
           </div>
         </div>
       </div>,
