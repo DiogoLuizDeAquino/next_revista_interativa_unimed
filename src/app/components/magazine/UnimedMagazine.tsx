@@ -4,13 +4,13 @@ import React, { useState, useRef, useCallback, useMemo } from 'react';
 import OriginalHTMLFlipBook from 'react-pageflip';
 import { Button } from "@/components/ui/button";
 
-
+// Solução para o erro de TypeScript da biblioteca
 const HTMLFlipBook = OriginalHTMLFlipBook as any;
 
 const magazineData = [
   {
     type: 'cover',
-    photo: '/dr-sergio_image.jpeg',
+    photo: '/dr-deska_image.jpeg', // Lembre-se que esta imagem está na pasta /public
     management: 'Gestão 2023 - 2027',
     name: 'Presidente Sérgio Malburg Filho',
   },
@@ -26,7 +26,6 @@ const magazineData = [
   },
 ];
 
-
 export default function UnimedMagazine() {
   const flipBookRef = useRef<any>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -35,7 +34,7 @@ export default function UnimedMagazine() {
   const containerRef = useCallback((node: HTMLElement | null) => {
     if (node !== null) {
       const width = node.getBoundingClientRect().width;
-      const height = width / (3 / 4);
+      const height = width / (3 / 4); // Mantém a proporção 3:4
       setSize({ width, height });
     }
   }, []);
@@ -52,24 +51,24 @@ export default function UnimedMagazine() {
     flipBookRef.current?.pageFlip()?.flipPrev();
   };
 
-  // useMemo para criar a lista de páginas apenas uma vez.
   const pages = useMemo(() => {
     return [
-      // Página de Capa
-        <div key="cover" className="w-full h-full bg-[#00995D] grid place-items-center relative p-8 overflow-hidden">
-        <div className="absolute bottom-0 right-0 w-[150%] h-1/3 bg-white origin-bottom-right -skew-y-[35deg] z-0" />
-        <div className="relative z-10 w-4/5">
+      // Página de Capa com canto branco e brilho
+      <div key="cover" className="w-full h-full bg-[#00995D] grid place-items-center relative p-8 overflow-hidden">
+        
+        {/* Efeito de brilho diagonal */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent mix-blend-screen pointer-events-none z-0" />
+        
+        {/* Canto branco diagonal */}
+        <div className="absolute bottom-0 right-0 w-[150%] h-1/3 bg-white origin-bottom-right -skew-y-[35deg] z-10" />
+        
+        {/* Foto */}
+        <div className="relative z-20 w-full h-full flex items-center justify-center">
           <img
             src={magazineData[0].photo!}
             alt={magazineData[0].name!}
-            className="w-full h-auto object-contain rounded-xl border-2 border-gray-300 shadow-black/35 shadow-2xl"
+            className="w-full h-auto object-contain rounded-xl border-4 border-white shadow-2xl"
           />
-        </div>
-        <div className="absolute bottom-6 right-6 w-auto max-w-[280px] h-auto flex flex-row bg-white rounded-lg shadow-2xl overflow-hidden z-20 border-2 border-gray-300">
-          <div className="p-5 flex flex-col justify-center flex-1">
-            <h2 className="font-bold text-lg text-black whitespace-nowrap">{magazineData[0].management}</h2>
-            <p className="text-base text-gray-600 whitespace-nowrap">{magazineData[0].name}</p>
-          </div>
         </div>
       </div>,
       
@@ -86,9 +85,10 @@ export default function UnimedMagazine() {
         <p className="text-gray-500">Fim</p>
       </div>
     ];
-  }, []); // O array vazio [] garante que isso só rode uma vez
+  }, [turnNextPage]);
 
   return (
+    // Container responsivo
     <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl">
       <div ref={containerRef} className="w-full">
         {size.width > 0 && (
@@ -104,6 +104,7 @@ export default function UnimedMagazine() {
               {pages}
             </HTMLFlipBook>
             
+            {/* Navegação inferior */}
             <div className="flex items-center justify-center gap-4 mt-8">
               <Button onClick={turnPrevPage} variant="outline" disabled={currentPage === 0}>Anterior</Button>
               <span className="text-gray-600 font-medium">Página {currentPage + 1} de {pages.length}</span>
